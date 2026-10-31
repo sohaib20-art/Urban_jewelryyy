@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8d9e5">
+  <title>{% block title %}Urban.jewelryyy{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+<header class="topbar">
+  <a class="brand" href="{{ url_for('index') }}"><img class="brand-logo" src="{{ url_for('static', filename='urban-logo.jpg') }}" alt="UJ Collective — Style and Shine"><span>urban<span class="brand-dot">.</span>jewelryyy</span></a>
+  <nav class="navlinks">
+    <a href="{{ url_for('index') }}">{{ 'Accueil' if lang == 'fr' else 'الرئيسية' }}</a>
+    <a href="{{ url_for('admin_login') }}">{{ 'Admin' if lang == 'fr' else 'الإدارة' }}</a>
+    <span class="language-switch"><a href="{{ url_for('set_language', language='fr') }}" aria-label="Français">FR</a><span>·</span><a href="{{ url_for('set_language', language='ar') }}" aria-label="العربية">عربي</a></span>
+  </nav>
+</header>
+<main class="page">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}<div class="flash-stack">{% for category, message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}</div>{% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+<footer class="footer"><span>urban.jewelryyy</span><span>Bijoux & accessoires · DA</span></footer>
+<script>
+document.querySelectorAll('.reveal').forEach((el, i) => {
+  el.style.animationDelay = (i * 70) + 'ms';
+  el.classList.add('visible');
+});
+document.querySelectorAll('[data-confirm]').forEach(el => el.addEventListener('click', e => {
+  if (!confirm(el.dataset.confirm)) e.preventDefault();
+}));
+// Petite animation tactile pour chaque bouton et lien d'action.
+document.querySelectorAll('.button, button, .delete-button').forEach(el => {
+  el.addEventListener('click', () => {
+    el.classList.remove('tap-pop');
+    void el.offsetWidth;
+    el.classList.add('tap-pop');
+  });
+});
+// Afficher un joli merci animé après une commande enregistrée.
+if (document.body.classList.contains('order-complete')) {
+  const layer = document.createElement('div');
+  layer.className = 'thank-you-overlay';
+  layer.innerHTML = '<div class="thank-you-card"><div class="thank-heart">♥</div><strong>شكراً لثقتكم بنا</strong><span>Merci pour votre confiance</span><small>Urban.jewelryyy · Style and Shine</small></div>';
+  document.body.appendChild(layer);
+  window.setTimeout(() => layer.classList.add('thank-you-hide'), 2800);
+  window.setTimeout(() => layer.remove(), 3600);
+}
+</script>
+</body>
+</html>
