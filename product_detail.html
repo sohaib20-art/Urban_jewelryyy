@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name_fr }} — Urban.jewelryyy{% endblock %}
+{% block content %}
+<section class="detail-layout">
+  <div class="detail-gallery">
+    <a class="back-link" href="{{ url_for('index') }}#collection">← {{ 'Retour à la collection' if lang == 'fr' else 'العودة إلى المنتجات' }}</a>
+    <div class="detail-main-image" id="detail-main-image">
+      {% if images %}<img id="main-product-photo" src="{{ url_for('static', filename='uploads/' + images[0]) }}" alt="{{ product.name_fr }}">
+      {% else %}<div class="no-image"><span>U.</span><small>URBAN JEWELRYYY</small></div>{% endif %}
+      {% if images|length > 1 %}<button type="button" class="gallery-arrow gallery-prev" aria-label="Previous photo" onclick="movePhoto(-1)">‹</button><button type="button" class="gallery-arrow gallery-next" aria-label="Next photo" onclick="movePhoto(1)">›</button>{% endif %}
+    </div>
+    {% if images|length > 1 %}<div class="detail-thumbnails" aria-label="{{ 'Photos du produit' if lang == 'fr' else 'صور المنتج' }}">
+      {% for image_name in images %}<button type="button" class="detail-thumb {{ 'active' if loop.first else '' }}" onclick="showPhoto({{ loop.index0 }})" aria-label="Photo {{ loop.index }}"><img src="{{ url_for('static', filename='uploads/' + image_name) }}" alt="{{ product.name_fr }} - {{ loop.index }}"></button>{% endfor %}
+    </div>{% endif %}
+  </div>
+  <div class="detail-copy">
+    <div class="eyebrow">{{ 'DÉTAILS DU PRODUIT' if lang == 'fr' else 'تفاصيل المنتج' }}</div>
+    <h1>{{ product.name_ar if lang == 'ar' and product.name_ar else product.name_fr }}</h1>
+    <strong class="detail-price">{{ "%.0f"|format(product.price) }} DA</strong>
+    <p class="detail-description">{{ product.description_ar if lang == 'ar' and product.description_ar else product.description_fr or ('Un accessoire élégant pour chaque occasion.' if lang == 'fr' else 'إكسسوار أنيق لكل مناسبة.') }}</p>
+    {% if images|length > 1 %}<p class="photo-count">{{ images|length }} {{ 'photos disponibles — touchez une miniature pour l’agrandir.' if lang == 'fr' else 'صور متوفرة — اضغط على أي صورة مصغّرة لعرضها.' }}</p>{% endif %}
+    <a class="button button-pink detail-order-button" href="{{ url_for('order', product_id=product.id) }}">{{ 'Commander ce produit' if lang == 'fr' else 'اطلبي هذا المنتج' }} <span>↗</span></a>
+  </div>
+</section>
+<div class="photo-lightbox" id="photo-lightbox" aria-hidden="true" role="dialog" aria-label="{{ 'Photo en plein écran' if lang == 'fr' else 'الصورة بملء الشاشة' }}">
+  <button type="button" class="lightbox-close" aria-label="{{ 'Fermer' if lang == 'fr' else 'إغلاق' }}" onclick="closePhotoFullscreen()">×</button>
+  <button type="button" class="lightbox-arrow lightbox-prev" aria-label="Previous photo" onclick="movePhoto(-1)">‹</button>
+  <img id="fullscreen-product-photo" alt="{{ product.name_fr }}">
+  <button type="button" class="lightbox-arrow lightbox-next" aria-label="Next photo" onclick="movePhoto(1)">›</button>
+  <div class="lightbox-hint">{{ 'Touchez × pour fermer' if lang == 'fr' else 'اضغط × للإغلاق' }}</div>
+</div>
+<script>
+const productPhotos = {{ images|map('string')|list|tojson }};
+const photoUrls = [{% for image_name in images %}{{ url_for('static', filename='uploads/' + image_name)|tojson }}{% if not loop.last %},{% endif %}{% endfor %}];
+let currentPhoto = 0;
+function showPhoto(index) {
+  if (!photoUrls.length) return;
+  currentPhoto = (index + photoUrls.length) % photoUrls.length;
+  document.getElementById('main-product-photo').src = photoUrls[currentPhoto];
+  const fullscreenImage = document.getElementById('fullscreen-product-photo');
+  if (fullscreenImage) fullscreenImage.src = photoUrls[currentPhoto];
+  document.querySelectorAll('.detail-thumb').forEach((button, i) => button.classList.toggle('active', i === currentPhoto));
+}
+function movePhoto(step) { showPhoto(currentPhoto + step); }
+function openPhotoFullscreen() {
+  if (!photoUrls.length) return;
+  const lightbox = document.getElementById('photo-lightbox');
+  document.getElementById('fullscreen-product-photo').src = photoUrls[currentPhoto];
+  lightbox.classList.add('open');
+  lightbox.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('photo-fullscreen-open');
+}
+function closePhotoFullscreen() {
+  const lightbox = document.getElementById('photo-lightbox');
+  lightbox.classList.remove('open');
+  lightbox.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('photo-fullscreen-open');
+}
+document.getElementById('detail-main-image')?.addEventListener('click', function(e) {
+  if (e.target.id === 'main-product-photo') openPhotoFullscreen();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closePhotoFullscreen();
+  if (document.getElementById('photo-lightbox').classList.contains('open') && e.key === 'ArrowRight') movePhoto(1);
+  if (document.getElementById('photo-lightbox').classList.contains('open') && e.key === 'ArrowLeft') movePhoto(-1);
+});
+</script>
+{% endblock %}
